@@ -27,7 +27,12 @@ export async function setupRootStore(rootStore: RootStore) {
 
   try {
     // load the last known state from AsyncStorage
+    const authToken = await getSecurePasswordFromKeychain() // <-- here is where you can load additional data for the snapshot that will eventually be applied to the rootStore
+
     restoredState = (await storage.load(ROOT_STATE_STORAGE_KEY)) || {}
+
+    restoredState.authenticationStore = { ...restoredState.authenticationStore, authToken }
+
     applySnapshot(rootStore, restoredState)
   } catch (e) {
     // if there's any problems loading, then inform the dev what happened
