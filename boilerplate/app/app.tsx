@@ -78,7 +78,7 @@ function App(props: AppProps) {
 
   const [areFontsLoaded] = useFonts(customFontsToLoad)
 
-  const { rehydrated } = useInitialRootStore(() => {
+  const { rehydrated, rootStore } = useInitialRootStore(() => {
     // This runs after the root store has been initialized and rehydrated.
 
     // If your initialization scripts run very fast, it's good to show the splash screen for just a bit longer to prevent flicker.
@@ -99,6 +99,10 @@ function App(props: AppProps) {
   const linking = {
     prefixes: [prefix],
     config,
+  }
+
+  if (rootStore.authenticationStore.authTokenStatus !== "loaded") {
+    return <SomeLoadingScreen />
   }
 
   // otherwise, we're ready to render the app

@@ -6,6 +6,9 @@ export const AuthenticationStoreModel = types
     authToken: types.maybe(types.string),
     authEmail: "",
   })
+  .volatile<AuthenticationStoreVolatileProps>((store) => ({
+    authTokenStatus: "none", // <-- this will never be persisted to storage and will always rehydrate to "none"
+  }))
   .views((store) => ({
     get isAuthenticated() {
       return !!store.authToken
@@ -22,6 +25,9 @@ export const AuthenticationStoreModel = types
     setAuthToken(value?: string) {
       store.authToken = value
     },
+    setAuthTokenStatus(value: AuthenticationStoreVolatileProps["authTokenStatus"]) {
+      store.authTokenStatus = value
+    },
     setAuthEmail(value: string) {
       store.authEmail = value.replace(/ /g, "")
     },
@@ -29,9 +35,18 @@ export const AuthenticationStoreModel = types
       store.authToken = undefined
       store.authEmail = ""
     },
+    async afterCreate() {
+      this.setAuthTokenStatus("loading")
+      const authToken = await getPasswordFromKeychain()
+      this.setAuthToken(authToken)
+      this.setAuthTokenStatus("loaded")
+    }
   }))
 
 export interface AuthenticationStore extends Instance<typeof AuthenticationStoreModel> {}
 export interface AuthenticationStoreSnapshot extends SnapshotOut<typeof AuthenticationStoreModel> {}
+interface AuthenticationStoreVolatileProps {
+  authTokenStatus: "loading" | "loaded" | "none"
+}
 
 // @demo remove-file
